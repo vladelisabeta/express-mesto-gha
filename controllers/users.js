@@ -14,7 +14,6 @@ module.exports.getUsers = (req, res) => {
 
 //  CREATE USER
 module.exports.createUser = (req, res) => {
-  // console.log(req.body)
   const { name, about, avatar } = req.body;
   return User.create({ name, about, avatar })
     .then(r => {
@@ -33,7 +32,6 @@ module.exports.getUserById = (req, res) => {
   const { userId } = req.params
   return User.findById(userId)
     .then(r => {
-      // console.log(userId)
       if (r === null) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: "Пользователь не найден!" });
       }
@@ -47,28 +45,44 @@ module.exports.getUserById = (req, res) => {
     })
 }
 
+module.exports.updateProfile = (req, res) => {
+  const { name, about } = req.body
+  return User.findByIdAndUpdate(req.user._id, { name, about }, {
+    new: true,
+    runValidators: true,
+    upsert: true
+  })
+    .then(r => {
+      if (r === null) {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: "Пользователь не найден!" });
+      }
+      return res.status(HTTP_STATUS_OK).send(r)
+    })
+    .catch((e) => {
+      if (e.name === "CastError") {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: " Переданы некорректные данные при обновлении профиля." })
+      }
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: "Непредвиденная ошибка на сервере." })
+    })
+}
 
-// module.exports.getUsers = (req, res) => {
-//   User.find({})
-//     .then(users => res.send({ data: users }))
-//     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
-// };
-
-
-
-// module.exports.getUserById = (req, res) => {
-//   const { id } = req.params
-//   User.findById(id)
-//     .then(users => res.send({ data: users }))
-//     .catch((err) => res.status(500).send({ message: 'Пользователь не найден!' }))
-// }
-
-// module.exports.createUser = (req, res) => {
-//   const { name, about, avatar } = req.body;
-//   return User.create({ name, about, avatar })
-//     .then(user => res.send({ data: user }))
-//     // .then(user => {
-//     //   return res.send(user)
-//     // })
-//     .catch((e) => res.status(500).send({ message: 'Произошла ошибка' }));
-// }
+module.exports.updateAvatar = (req, res) => {
+  const { avatar } = req.body
+  return User.findByIdAndUpdate(req.user._id, { avatar }, {
+    new: true,
+    runValidators: true,
+    upsert: true
+  })
+    .then(r => {
+      if (r === null) {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: "Пользователь с указанным _id не найден." });
+      }
+      return res.status(HTTP_STATUS_OK).send(r)
+    })
+    .catch((e) => {
+      if (e.name === "CastError") {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: "Переданы некорректные данные при обновлении аватара." })
+      }
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: "Непредвиденная ошибка на сервере." })
+    })
+}
