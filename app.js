@@ -27,9 +27,6 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
-app.use(userRouter)
-app.use(cardRouter)
-
 app.use((req, res, next) => {
   req.user = {
     _id: '650c80bcf5de093a46dcd085' // вставьте сюда _id созданного в предыдущем пункте пользователя
@@ -37,6 +34,12 @@ app.use((req, res, next) => {
 
   next();
 });
+
+
+app.use(userRouter)
+app.use(cardRouter)
+
+
 
 
 // устаревшее и ненужное
