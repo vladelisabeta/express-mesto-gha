@@ -29,7 +29,6 @@ app.use((req, res, next) => {
 
 app.use(userRouter);
 app.use(cardRouter);
-// app.use(errorRouter);
 
 app.use('*', (req, res) => {
   res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такой страницы не существует' });
