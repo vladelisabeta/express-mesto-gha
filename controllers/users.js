@@ -5,11 +5,15 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_OK,
-  HTTP_STATUS_NOT_FOUND,
+  // HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CREATED,
-  HTTP_STATUS_CONFLICT,
+  // HTTP_STATUS_CONFLICT,
 } = require('http2').constants;
 const User = require('../models/user');
+const ConflictError = require('../errors/ConflictError');
+const NotFoundError = require('../errors/NotFoundError');
+// const UnauthorizedError = require('../errors/UnauthorizedError');
+const BadRequestError = require('../errors/BadRequestError');
 
 const SALT_TIMES = 10;
 const DB_DUPLCATE_ERROR_CODE = 11000;
@@ -21,7 +25,7 @@ module.exports.getUsers = (req, res) => User.find({})
   .then((r) => res.status(HTTP_STATUS_OK).send(r))
   .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' }));
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -35,35 +39,38 @@ module.exports.createUser = (req, res) => {
     }))
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя.' });
+        next(new BadRequestError('Переданы некорректные данные'));
+        return;
       }
       if (e.name === DB_DUPLCATE_ERROR_CODE) {
-        return res.status(HTTP_STATUS_CONFLICT).send({ message: 'Пользователь с такими данными уже существует' });
+        next(new ConflictError('Пользователь с такими данными уже существует'));
+        return;
       }
 
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' });
+      next(e);
     });
 };
 
 // GET USER BY ID
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
   return User.findById(userId)
     .then((r) => {
       if (r === null) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден!' });
+        throw new NotFoundError('Пользователь не найден!');
       }
       return res.status(HTTP_STATUS_OK).send(r);
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Пользователь по указанному _id не найден.' });
+        next(new BadRequestError('Пользователь по указанному _id не найден.'));
+        return;
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' });
+      next(e);
     });
 };
 
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   return User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
@@ -72,19 +79,20 @@ module.exports.updateProfile = (req, res) => {
   })
     .then((r) => {
       if (r === null) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден!' });
+        throw new NotFoundError('Пользователь не найден!');
       }
       return res.status(HTTP_STATUS_OK).send(r);
     })
     .catch((e) => {
       if (e.name === 'CastError' || e.name === 'ValidationError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: ' Переданы некорректные данные при обновлении профиля.' });
+        next(new BadRequestError('Переданы некорректные данные при обновлении профиля.'));
+        return;
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' });
+      next(e);
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   return User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
@@ -93,15 +101,16 @@ module.exports.updateAvatar = (req, res) => {
   })
     .then((r) => {
       if (r === null) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь c указанным _id не найден.' });
+        throw new NotFoundError('Пользователь c указанным _id не найден.');
       }
       return res.status(HTTP_STATUS_OK).send(r);
     })
     .catch((e) => {
       if (e.name === 'CastError' || e.name === 'ValidationError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении аватара.' });
+        next(new BadRequestError('Переданы некорректные данные при обновлении аватара.'));
+        return;
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' });
+      next(e);
     });
 };
 

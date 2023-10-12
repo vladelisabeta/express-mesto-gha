@@ -38,6 +38,11 @@ app.use('*', (req, res) => {
   res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Такой страницы не существует' });
 });
 
+app.use((err, req, res, next) => {
+  res.status(err.statusCode).send({ message: err.message });
+  next();
+});
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
