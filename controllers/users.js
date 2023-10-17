@@ -30,6 +30,8 @@ module.exports.createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
+  console.log('безуспешно и не создан пользователь');
+
   bcrypt.hash(password, SALT_TIMES)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
@@ -42,11 +44,11 @@ module.exports.createUser = (req, res, next) => {
         next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
-      if (e.name === DB_DUPLCATE_ERROR_CODE) {
+      if (e.code === DB_DUPLCATE_ERROR_CODE) {
         next(new ConflictError('Пользователь с такими данными уже существует'));
         return;
       }
-
+      console.log('успешно создан пользователь');
       next(e);
     });
 };
@@ -68,6 +70,14 @@ module.exports.getUserById = (req, res, next) => {
       }
       next(e);
     });
+};
+
+module.exports.getCurrentUserInfo = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((r) => {
+      res.send(r);
+    })
+    .catch(next);
 };
 
 module.exports.updateProfile = (req, res, next) => {
@@ -121,12 +131,15 @@ module.exports.login = async (req, res) => {
     const userData = await User.findOne({ email }).select('+password'); // СДЕЛАТЬ ОБРАБОТЧИКИ ОШИБОК
     const matched = await bcrypt.compare(password, userData.password);
     if (!matched) {
-      throw new Error('InvalidData');
+      // throw new Error('InvalidData');
+      throw new BadRequestError('Неверный токен');
     }
 
-    const token = jwt.sign({ _id: userData });
+    const token = jwt.sign({ _id: userData }, JWT_SECRET, { expiresIn: '7d', httpOnly: true, sameSite: true });
 
-    res.cookie(JWT_SECRET, token, { expiresIn: '7d', httpOnly: true, sameSite: true });
+    res.send({ token });
+
+    // res.cookie(JWT_SECRET, token, { expiresIn: '7d', httpOnly: true, sameSite: true });
 
     return res.status(HTTP_STATUS_OK).send({ _id: userData });
   } catch (e) {
