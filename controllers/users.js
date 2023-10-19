@@ -1,31 +1,24 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {
-  // HTTP_STATUS_BAD_REQUEST,
-  // HTTP_STATUS_INTERNAL_SERVER_ERROR,
-  // HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_OK,
-  // HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CREATED,
   // HTTP_STATUS_CONFLICT,
 } = require('http2').constants;
 const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
-const UnauthorizedError = require('../errors/UnauthorizedError');
+// const UnauthorizedError = require('../errors/UnauthorizedError');
 const BadRequestError = require('../errors/BadRequestError');
 
 const SALT_TIMES = 10;
 const DB_DUPLCATE_ERROR_CODE = 11000;
 const JWT_SECRET = 'very very very very secrety secret';
-// INVALID DATA ЭТО ИМЯ ОШИБКИ (InvalidData)
 
 // GET USERS ПОФИКСИТЬ
 module.exports.getUsers = (req, res, next) => User.find({})
   .then((r) => res.status(HTTP_STATUS_OK).send(r))
   .catch(next);
-// .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
-// .send({ message: 'Непредвиденная ошибка на сервере.' }));
 
 module.exports.createUser = (req, res, next) => {
   const {
@@ -125,30 +118,43 @@ module.exports.updateAvatar = (req, res, next) => {
     });
 };
 
-module.exports.login = async (req, res, next) => {
+// module.exports.login = async (req, res, next) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     const userData = await User.findOne({ email })
+// .select('+password'); // СДЕЛАТЬ ОБРАБОТЧИКИ ОШИБОК
+//     const matched = await bcrypt.compare(password, userData.password);
+//     if (!matched) {
+//       throw new BadRequestError('Неверный токен');
+//     }
+
+//     const token = jwt.sign({ _id: userData }, JWT_SECRET,
+// { expiresIn: '7d', httpOnly: true, sameSite: true });
+
+//     res.send({ token });
+
+//     return res.status(HTTP_STATUS_OK).send({ _id: userData });
+//   } catch (e) {
+//     if (e.name === 'ValidationError') {
+//       next(new BadRequestError('Переданы некорректные данные'));
+//       return Promise.resolve();
+//     }
+//     if (e.name === 'InvalidData') {
+//       next(new UnauthorizedError('Неправильные почта или пароль'));
+//       return Promise.resolve();
+//     }
+//   }
+//   return next();
+// };
+
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  try {
-    const userData = await User.findOne({ email }).select('+password'); // СДЕЛАТЬ ОБРАБОТЧИКИ ОШИБОК
-    const matched = await bcrypt.compare(password, userData.password);
-    if (!matched) {
-      throw new BadRequestError('Неверный токен');
-    }
-
-    const token = jwt.sign({ _id: userData }, JWT_SECRET, { expiresIn: '7d', httpOnly: true, sameSite: true });
-
-    res.send({ token });
-
-    return res.status(HTTP_STATUS_OK).send({ _id: userData });
-  } catch (e) {
-    if (e.name === 'ValidationError') {
-      next(new BadRequestError('Переданы некорректные данные'));
-      return Promise.resolve();
-    }
-    if (e.name === 'InvalidData') {
-      next(new UnauthorizedError('Неправильные почта или пароль'));
-      return Promise.resolve();
-    }
-  }
-  return next();
+  return User.findUserByCredentials(email, password)
+    .then((userData) => {
+      const token = jwt.sign({ _id: userData._id }, JWT_SECRET, { expiresIn: '7d', httpOnly: true, sameSite: true });
+      res.send({ token });
+    })
+    .catch(next);
 };

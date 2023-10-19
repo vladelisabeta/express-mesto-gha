@@ -63,10 +63,13 @@ app.use('*', (req, res) => {
 // централизированные ошибки
 
 app.use((err, req, res, next) => {
-  const { statusCode = HTTP_STATUS_INTERNAL_SERVER_ERROR, message } = err;
+  const { statusCode, message } = err;
 
-  res.status(statusCode).send({ message: statusCode === 500 ? 'На сервере произошла непривдвиденная ошибка!' : message });
-  // res.status(err.statusCode).send({ message: err.message });
+  res.status(statusCode)
+    .send({
+      message: statusCode === HTTP_STATUS_INTERNAL_SERVER_ERROR ? 'На сервере произошла непредвиденная ошибка!'
+        : message,
+    });
   next();
 });
 
