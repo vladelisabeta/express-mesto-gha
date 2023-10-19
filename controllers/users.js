@@ -20,7 +20,7 @@ const DB_DUPLCATE_ERROR_CODE = 11000;
 const JWT_SECRET = 'very very very very secrety secret';
 // INVALID DATA ЭТО ИМЯ ОШИБКИ (InvalidData)
 
-// GET USERS
+// GET USERS ПОФИКСИТЬ
 module.exports.getUsers = (req, res) => User.find({})
   .then((r) => res.status(HTTP_STATUS_OK).send(r))
   .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' }));

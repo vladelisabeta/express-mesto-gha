@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { celebrate, Joi } = require('celebrate');
 const {
   HTTP_STATUS_NOT_FOUND,
 } = require('http2').constants;
@@ -29,8 +30,35 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //   next();
 // });
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+// app.post('/signin', login);
+// app.post('/signup', createUser);
+
+// логин login
+app.post(
+  '/signin',
+  celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().email().required(),
+      password: Joi.string().min(8).required(),
+    }),
+  }),
+  login,
+);
+
+// создание пользователя create user
+app.post(
+  '/signup',
+  celebrate({
+    body: Joi.object().keys({
+      name: Joi.string().min(2).max(30),
+      about: Joi.string().min(2).max(30),
+      avatar: Joi.string(),
+      email: Joi.string().email().required(),
+      password: Joi.string().min(8).required(),
+    }),
+  }),
+  createUser,
+);
 
 app.use(auth);
 
