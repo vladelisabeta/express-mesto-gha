@@ -50,7 +50,6 @@ module.exports.createUser = (req, res, next) => {
         next(new ConflictError('Пользователь с такими данными уже существует'));
         return;
       }
-      console.log('успешно создан пользователь');
       next(e);
     });
 };
