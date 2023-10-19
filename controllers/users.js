@@ -1,9 +1,9 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_INTERNAL_SERVER_ERROR,
-  HTTP_STATUS_UNAUTHORIZED,
+  // HTTP_STATUS_BAD_REQUEST,
+  // HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  // HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_OK,
   // HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CREATED,
@@ -12,7 +12,7 @@ const {
 const User = require('../models/user');
 const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
-// const UnauthorizedError = require('../errors/UnauthorizedError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 const BadRequestError = require('../errors/BadRequestError');
 
 const SALT_TIMES = 10;
@@ -21,9 +21,11 @@ const JWT_SECRET = 'very very very very secrety secret';
 // INVALID DATA ЭТО ИМЯ ОШИБКИ (InvalidData)
 
 // GET USERS ПОФИКСИТЬ
-module.exports.getUsers = (req, res) => User.find({})
+module.exports.getUsers = (req, res, next) => User.find({})
   .then((r) => res.status(HTTP_STATUS_OK).send(r))
-  .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' }));
+  .catch(next);
+// .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+// .send({ message: 'Непредвиденная ошибка на сервере.' }));
 
 module.exports.createUser = (req, res, next) => {
   const {
@@ -124,14 +126,13 @@ module.exports.updateAvatar = (req, res, next) => {
     });
 };
 
-module.exports.login = async (req, res) => {
+module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
     const userData = await User.findOne({ email }).select('+password'); // СДЕЛАТЬ ОБРАБОТЧИКИ ОШИБОК
     const matched = await bcrypt.compare(password, userData.password);
     if (!matched) {
-      // throw new Error('InvalidData');
       throw new BadRequestError('Неверный токен');
     }
 
@@ -139,18 +140,16 @@ module.exports.login = async (req, res) => {
 
     res.send({ token });
 
-    // res.cookie(JWT_SECRET, token, { expiresIn: '7d', httpOnly: true, sameSite: true });
-
     return res.status(HTTP_STATUS_OK).send({ _id: userData });
   } catch (e) {
     if (e.name === 'ValidationError') {
-      return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
+      return Promise.resolve();
     }
-
-    if (e.message === 'InvalidData') {
-      return res.status(HTTP_STATUS_UNAUTHORIZED).send({ message: 'Неправильные почта или пароль' });
+    if (e.name === 'InvalidData') {
+      next(new UnauthorizedError('Неправильные почта или пароль'));
+      return Promise.resolve();
     }
-
-    return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send(e);
   }
+  return next();
 };
