@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { celebrate, Joi } = require('celebrate');
 const {
   HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
 } = require('http2').constants;
 const bodyParser = require('body-parser');
 const userRouter = require('./routes/users');
@@ -62,9 +63,17 @@ app.use('*', (req, res) => {
 // централизированные ошибки
 
 app.use((err, req, res, next) => {
-  res.status(err.statusCode).send({ message: err.message });
+  const { statusCode = HTTP_STATUS_INTERNAL_SERVER_ERROR, message } = err;
+
+  res.status(statusCode).send({ message: statusCode === 500 ? 'На сервере произошла непривдвиденная ошибка!' : message });
+  // res.status(err.statusCode).send({ message: err.message });
   next();
 });
+
+// app.use((err, req, res, next) => {
+//   res.status(err.statusCode).send({ message: err.message });
+//   next();
+// });
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
