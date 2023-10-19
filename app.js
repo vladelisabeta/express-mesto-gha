@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
-// const auth = require('./middlewares/auth');
+const { auth } = require('./middlewares/auth');
 
 const { PORT = 3000, MONGOHOST = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
@@ -32,7 +32,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-// app.use(auth);
+app.use(auth);
 
 app.use(userRouter);
 app.use(cardRouter);

@@ -1,7 +1,8 @@
 const {
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_INTERNAL_SERVER_ERROR,
-  HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND,
+  // HTTP_STATUS_BAD_REQUEST,
+  // HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_OK,
+  // HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CREATED,
 } = require('http2').constants;
 
@@ -37,14 +38,11 @@ module.exports.deleteCardById = (req, res, next) => {
     .then((r) => {
       if (r === null) {
         throw new NotFoundError('Карточка не найдена!');
-        // return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена!' });
-        // дублируется
       }
       if (`${r.owner}` !== req.user._id) {
         throw new ConflictError('Сожалеем, но Вы можете удалять только свои карточки!');
       }
       return Card.findByIdAndRemove(cardId);
-      // return res.status(HTTP_STATUS_OK).send(r);
     })
     .catch((e) => {
       if (e.name === 'CastError') {
@@ -55,25 +53,26 @@ module.exports.deleteCardById = (req, res, next) => {
     });
 };
 
-module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
+module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
   req.params.cardId,
   { $addToSet: { likes: req.user._id } },
   { new: true },
 )
   .then((r) => {
     if (r === null) {
-      return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена!' });
+      throw new NotFoundError('Карточка не найдена!');
     }
     return res.status(HTTP_STATUS_OK).send(r);
   })
   .catch((e) => {
     if (e.name === 'CastError') {
-      return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Передан несуществующий _id карточки.' });
+      next(new BadRequestError('Передан несуществующий _id карточки.'));
+      return;
     }
-    return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' });
+    next(e);
   });
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   const { cardId } = req.params;
   return Card.findByIdAndUpdate(
     cardId,
@@ -82,14 +81,15 @@ module.exports.dislikeCard = (req, res) => {
   )
     .then((r) => {
       if (r === null) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена!' });
+        throw new NotFoundError('Карточка не найдена!');
       }
       return res.status(HTTP_STATUS_OK).send(r);
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Передан несуществующий _id карточки.' });
+        next(new BadRequestError('Передан несуществующий _id карточки.'));
+        return;
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка на сервере.' });
+      next(e);
     });
 };
