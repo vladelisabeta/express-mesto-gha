@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { celebrate, Joi } = require('celebrate');
+const { errors } = require('celebrate');
 const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
@@ -54,6 +55,7 @@ app.use(auth);
 
 app.use(userRouter);
 app.use(cardRouter);
+app.use(errors());
 
 // ошибка такой страницы не существует
 app.use('*', (req, res) => {
@@ -72,11 +74,6 @@ app.use((err, req, res, next) => {
     });
   next();
 });
-
-// app.use((err, req, res, next) => {
-//   res.status(err.statusCode).send({ message: err.message });
-//   next();
-// });
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);

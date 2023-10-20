@@ -25,8 +25,6 @@ module.exports.createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  console.log('безуспешно и не создан пользователь');
-
   bcrypt.hash(password, SALT_TIMES)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
@@ -36,10 +34,12 @@ module.exports.createUser = (req, res, next) => {
     }))
     .catch((e) => {
       if (e.name === 'ValidationError') {
+        console.log(`в блоке catch контроллера createUser err.name=${e.name}`);
         next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
       if (e.code === DB_DUPLCATE_ERROR_CODE) {
+        console.log('ошибка повторного создания пользователя');
         next(new ConflictError('Пользователь с такими данными уже существует'));
         return;
       }
@@ -53,12 +53,14 @@ module.exports.getUserById = (req, res, next) => {
   return User.findById(userId)
     .then((r) => {
       if (r === null) {
+        console.log('в блоке NO USER??? контроллера getUserById');
         throw new NotFoundError('Пользователь не найден!');
       }
       return res.status(HTTP_STATUS_OK).send(r);
     })
     .catch((e) => {
       if (e.name === 'CastError') {
+        console.log(`в блоке catch контроллера getUserById err.name=${e.name}`);
         next(new BadRequestError('Пользователь по указанному _id не найден.'));
         return;
       }
@@ -89,6 +91,7 @@ module.exports.updateProfile = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'CastError' || e.name === 'ValidationError') {
+        console.log(`в блоке catch контроллера updateProfile e.name=${e.name}`);
         next(new BadRequestError('Переданы некорректные данные при обновлении профиля.'));
         return;
       }
@@ -111,6 +114,7 @@ module.exports.updateAvatar = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'CastError' || e.name === 'ValidationError') {
+        console.log(`в блоке catch контроллера updateAvatar err.name=${e.name}`);
         next(new BadRequestError('Переданы некорректные данные при обновлении аватара.'));
         return;
       }
@@ -118,42 +122,13 @@ module.exports.updateAvatar = (req, res, next) => {
     });
 };
 
-// module.exports.login = async (req, res, next) => {
-//   const { email, password } = req.body;
-
-//   try {
-//     const userData = await User.findOne({ email })
-// .select('+password'); // СДЕЛАТЬ ОБРАБОТЧИКИ ОШИБОК
-//     const matched = await bcrypt.compare(password, userData.password);
-//     if (!matched) {
-//       throw new BadRequestError('Неверный токен');
-//     }
-
-//     const token = jwt.sign({ _id: userData }, JWT_SECRET,
-// { expiresIn: '7d', httpOnly: true, sameSite: true });
-
-//     res.send({ token });
-
-//     return res.status(HTTP_STATUS_OK).send({ _id: userData });
-//   } catch (e) {
-//     if (e.name === 'ValidationError') {
-//       next(new BadRequestError('Переданы некорректные данные'));
-//       return Promise.resolve();
-//     }
-//     if (e.name === 'InvalidData') {
-//       next(new UnauthorizedError('Неправильные почта или пароль'));
-//       return Promise.resolve();
-//     }
-//   }
-//   return next();
-// };
-
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
-    .then((userData) => {
-      const token = jwt.sign({ _id: userData._id }, JWT_SECRET, { expiresIn: '7d', httpOnly: true, sameSite: true });
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d', httpOnly: true, sameSite: true });
+      console.log('ТЫ ЛОХ');
       res.send({ token });
     })
     .catch(next);
