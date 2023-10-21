@@ -124,12 +124,16 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
+  console.log('привет я логин я пытаюсь работать');
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d', httpOnly: true, sameSite: true });
-      console.log('ТЫ ЛОХ');
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+      console.log('ТОКЕН ДОЛЖЕН БЫТЬ ТУТ');
       res.send({ token });
     })
-    .catch(next);
+    // .catch(next);
+    .catch((e) => {
+      console.log(`${e}  МОЖЕТ ЕСЛИ Я НАПИШУ МНОГО ТЕКСТА ТО УВИЖУ`);
+      next(e);
+    });
 };
