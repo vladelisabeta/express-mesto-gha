@@ -34,12 +34,10 @@ module.exports.createUser = (req, res, next) => {
     }))
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        console.log(`в блоке catch контроллера createUser err.name=${e.name}`);
         next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
       if (e.code === DB_DUPLCATE_ERROR_CODE) {
-        console.log('ошибка повторного создания пользователя');
         next(new ConflictError('Пользователь с такими данными уже существует'));
         return;
       }
@@ -53,14 +51,12 @@ module.exports.getUserById = (req, res, next) => {
   return User.findById(userId)
     .then((r) => {
       if (r === null) {
-        console.log('в блоке NO USER??? контроллера getUserById');
         throw new NotFoundError('Пользователь не найден!');
       }
       return res.status(HTTP_STATUS_OK).send(r);
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        console.log(`в блоке catch контроллера getUserById err.name=${e.name}`);
         next(new BadRequestError('Пользователь по указанному _id не найден.'));
         return;
       }
@@ -91,7 +87,6 @@ module.exports.updateProfile = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'CastError' || e.name === 'ValidationError') {
-        console.log(`в блоке catch контроллера updateProfile e.name=${e.name}`);
         next(new BadRequestError('Переданы некорректные данные при обновлении профиля.'));
         return;
       }
@@ -114,7 +109,6 @@ module.exports.updateAvatar = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'CastError' || e.name === 'ValidationError') {
-        console.log(`в блоке catch контроллера updateAvatar err.name=${e.name}`);
         next(new BadRequestError('Переданы некорректные данные при обновлении аватара.'));
         return;
       }
@@ -124,16 +118,13 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  console.log('привет я логин я пытаюсь работать');
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
-      console.log('ТОКЕН ДОЛЖЕН БЫТЬ ТУТ');
       res.send({ token });
     })
     // .catch(next);
     .catch((e) => {
-      console.log(`${e}  МОЖЕТ ЕСЛИ Я НАПИШУ МНОГО ТЕКСТА ТО УВИЖУ`);
       next(e);
     });
 };

@@ -3,9 +3,7 @@ const {
   HTTP_STATUS_CREATED,
 } = require('http2').constants;
 
-// const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
-// const UnauthorizedError = require('../errors/UnauthorizedError');
 const BadRequestError = require('../errors/BadRequestError');
 
 const Card = require('../models/card');
