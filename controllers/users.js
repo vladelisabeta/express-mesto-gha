@@ -48,7 +48,7 @@ module.exports.createUser = (req, res, next) => {
 module.exports.getCurrentUserInfo = (req, res, next) => {
   User.findById(req.user._id)
     .then((r) => {
-      res.send(r);
+      res.status(HTTP_STATUS_OK).send(r);
     })
     .catch(next);
 };
