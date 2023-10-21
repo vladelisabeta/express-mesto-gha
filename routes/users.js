@@ -5,8 +5,10 @@ const { urlRegex } = require('../utils/consts');
 const {
   getUsers, getUserById, updateProfile, updateAvatar, getCurrentUserInfo,
 } = require('../controllers/users');
+
 // получить пользователей
 router.get('/users', getUsers);
+router.get('/users/me', getCurrentUserInfo);
 router.get(
   '/users/:userId',
   celebrate({
@@ -39,14 +41,4 @@ router.patch(
   }),
   updateAvatar,
 );
-router.get(
-  '/users/me',
-  celebrate({
-    params: Joi.object().keys({
-      userId: Joi.string().hex().length(24).required(),
-    }),
-  }),
-  getCurrentUserInfo,
-);
-
 module.exports = router;
