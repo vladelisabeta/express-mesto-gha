@@ -4,6 +4,7 @@ const {
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_FORBIDDEN,
 } = require('http2').constants;
 
 const urlRegex = /^https?:\/\/(www\.)?[\w-._~:/?#[\]@!$&'()*+,;=]*#?/;
@@ -14,5 +15,6 @@ module.exports = {
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_FORBIDDEN,
   urlRegex,
 };

@@ -5,9 +5,9 @@ const {
 
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 const Card = require('../models/card');
-const ConflictError = require('../errors/ConflictError');
 
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
@@ -35,7 +35,7 @@ module.exports.deleteCardById = (req, res, next) => {
         throw new NotFoundError('Карточка не найдена!');
       }
       if (`${r.owner}` !== req.user._id) {
-        throw new ConflictError('Сожалеем, но Вы можете удалять только свои карточки!');
+        throw new ForbiddenError('Сожалеем, но Вы можете удалять только свои карточки!');
       }
       return Card.findByIdAndRemove(cardId);
     })
