@@ -39,6 +39,9 @@ module.exports.deleteCardById = (req, res, next) => {
       }
       return Card.findByIdAndRemove(cardId);
     })
+    .then((r) => {
+      res.status(HTTP_STATUS_OK).send(r);
+    })
     .catch((e) => {
       if (e.name === 'CastError') {
         next(new BadRequestError('Такой карточки не существует!'));
