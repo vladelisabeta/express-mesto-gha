@@ -11,6 +11,7 @@ const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const { auth } = require('./middlewares/auth');
+const { urlRegex } = require('./utils/consts');
 
 const { PORT = 3000, MONGOHOST = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
@@ -43,7 +44,7 @@ app.post(
     body: Joi.object().keys({
       name: Joi.string().min(2).max(30),
       about: Joi.string().min(2).max(30),
-      avatar: Joi.string().pattern('^https?:\\/\\/(www\\.)?[\\w-._~:/?#[\\]@!$&\'()*+,;=]*#?'),
+      avatar: Joi.string().regex(urlRegex).uri({ scheme: ['http', 'https'] }),
       email: Joi.string().email().required(),
       password: Joi.string().min(8).required(),
     }),

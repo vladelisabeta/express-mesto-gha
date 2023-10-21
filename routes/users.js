@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
+const { urlRegex } = require('../utils/consts');
 
 const {
   getUsers, getUserById, updateProfile, updateAvatar, getCurrentUserInfo,
@@ -10,15 +11,11 @@ router.get(
   '/users/:userId',
   celebrate({
     params: Joi.object().keys({
-      // userId: Joi.string(),
       userId: Joi.string().hex().length(24).required(),
     }),
   }),
   getUserById,
 );
-
-// ненужный? кусок кода переехал в апп
-// router.post('/users', createUser);
 
 // обновить профайл
 router.patch(
@@ -37,18 +34,10 @@ router.patch(
   '/users/me/avatar',
   celebrate({
     body: Joi.object().keys({
-      avatar: Joi.string().pattern('^https?:\\/\\/(www\\.)?[\\w-._~:/?#[\\]@!$&\'()*+,;=]*#?'),
+      avatar: Joi.string().regex(urlRegex).uri({ scheme: ['http', 'https'] }),
     }),
   }),
   updateAvatar,
 );
 router.get('/users/me', getCurrentUserInfo);
 module.exports = router;
-
-// router.get('/users', getUsers);
-// router.get('/users/:userId', getUserById);
-// // router.post('/users', createUser);
-// router.patch('/users/me', updateProfile);
-// router.patch('/users/me/avatar', updateAvatar);
-// router.get('/users/me', getCurrentUserInfo);
-// module.exports = router;
