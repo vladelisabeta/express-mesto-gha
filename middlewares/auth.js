@@ -6,9 +6,6 @@ const JWT_SECRET = 'very very very very secrety secret';
 module.exports.auth = (req, res, next) => {
   const { authorization } = req.headers;
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    // next(new UnauthorizedError('Необходима авторизация'));
-    // return;
-    console.log('AAAAAAAAA AUTH');
     throw new UnauthorizedError('Необходима авторизация');
   }
 

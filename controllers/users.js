@@ -45,6 +45,14 @@ module.exports.createUser = (req, res, next) => {
     });
 };
 
+module.exports.getCurrentUserInfo = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((r) => {
+      res.send(r);
+    })
+    .catch(next);
+};
+
 // GET USER BY ID
 module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
@@ -64,13 +72,13 @@ module.exports.getUserById = (req, res, next) => {
     });
 };
 
-module.exports.getCurrentUserInfo = (req, res, next) => {
-  User.findById(req.user._id)
-    .then((r) => {
-      res.send(r);
-    })
-    .catch(next);
-};
+// module.exports.getCurrentUserInfo = (req, res, next) => {
+//   User.findById(req.user._id)
+//     .then((r) => {
+//       res.send(r);
+//     })
+//     .catch(next);
+// };
 
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
