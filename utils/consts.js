@@ -7,7 +7,7 @@ const {
   HTTP_STATUS_FORBIDDEN,
 } = require('http2').constants;
 
-const urlRegex = /^https?:\/\/(www\.)?[\w-._~:/?#[\]@!$&'()*+,;=]*#?/;
+const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
 
 module.exports = {
   HTTP_STATUS_BAD_REQUEST,
